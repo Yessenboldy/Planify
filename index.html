@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Planify - Main Dashboard</title>
+    <style>
+        :root {
+            --primary-blue: #1a4a8e;
+            --light-blue: #7dafff;
+            --bg-color: #f0f2f5;
+        }
+
+        /* Прячем контент до проверки авторизации, чтобы не было редиректа на секунду */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            visibility: hidden; 
+        }
+
+        /* --- ЕДИНАЯ ШАПКА --- */
+        header {
+            width: 100%;
+            background: white;
+            padding: 12px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 2px solid #e0e0e0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-blue);
+            font-style: italic;
+            text-decoration: none;
+        }
+
+        nav {
+            display: flex;
+            gap: 25px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.2s;
+            padding: 5px 0;
+        }
+
+        .nav-link:hover { color: var(--primary-blue); }
+        .nav-link.active {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 35px;
+            height: 35px;
+            background: black;
+            border-radius: 50%;
+        }
+
+        #logoutBtn {
+            background: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        /* --- КОНТЕНТ ГЛАВНОЙ --- */
+        .container {
+            text-align: center;
+            padding: 20px 40px;
+            max-width: 1100px;
+            width: 90%;
+        }
+
+        h1 { font-size: 48px; margin-bottom: 5px; font-weight: 300; color: #333; }
+        p.subtitle { color: #666; font-style: italic; margin-bottom: 30px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 45px 35px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 180px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .card:hover { 
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-icon img { 
+            width: 100px;
+            height: auto;
+        }
+
+        .card-info { text-align: left; }
+        .card-info h3 { margin: 0 0 20px 0; font-size: 28px; }
+
+        .btn {
+            border: none;
+            padding: 12px 0;
+            border-radius: 25px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #333;
+            width: 180px;
+            font-weight: 500;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-habit { background-color: #f7b19d; }
+        .btn-sleep { background-color: #b8b8ff; }
+        .btn-planner { background-color: #b2ffb2; }
+        .btn-notes { background-color: #ffe4a1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Planify</div>
+        <nav>
+            <a href="index.html" class="nav-link active">Main page</a>
+            <a href="HabirTracker.html" class="nav-link">Habit tracker</a>
+            <a href="sleepTracker.html" class="nav-link">Sleep tracker</a>
+            <a href="planner.html" class="nav-link">Planner</a>
+            <a href="notes.html" class="nav-link">Notes</a>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <span><strong id="displayUserName">Loading...</strong></span>
+            <button id="logoutBtn">Exit</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1 id="welcomeText">Welcome!</h1>
+        <p class="subtitle">Let's make today productive</p>
+
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon"><img src="https://cdn-icons-png.flaticon.com/128/3050/3050525.png" alt="Habits"></div>
+                <div class="card-info">
+                    <h3>Habit Tracker</h3>
+                    <a href="HabirTracker.html"><div class="btn btn-habit">Click</div></a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon"><img src="https://cdn-icons-png.flaticon.com/128/3094/3094839.png" alt="Sleep"></div>
+                <div class="card-info">
+                    <h3>Sleep Tracker</h3>
+                    <a href="sleepTracker.html"><div class="btn btn-sleep">Click</div></a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon"><img src="https://cdn-icons-png.flaticon.com/128/2693/2693507.png" alt="Planner"></div>
+                <div class="card-info">
+                    <h3>Planner</h3>
+                    <a href="planner.html"><div class="btn btn-planner">Click</div></a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon"><img src="https://cdn-icons-png.flaticon.com/128/1157/1157000.png" alt="Notes"></div>
+                <div class="card-info">
+                    <h3>Notes</h3>
+                    <a href="notes.html"><div class="btn btn-notes">Click</div></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // Твой верный конфиг
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPAWcEHQQDXdhGBRLsRjVwQdpC0V2ggVs",
+            authDomain: "planify-app-29fe7.firebaseapp.com",
+            projectId: "planify-app-29fe7",
+            storageBucket: "planify-app-29fe7.firebasestorage.app",
+            messagingSenderId: "787080580754",
+            appId: "1:787080580754:web:aeae712dd78c9f6463a04b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Проверка входа
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Пользователь вошел
+                const name = user.email.split('@')[0];
+                document.getElementById('displayUserName').innerText = name;
+                document.getElementById('welcomeText').innerText = `Welcome, ${name}!`;
+                document.body.style.visibility = 'visible'; // Показываем страницу
+            } else {
+                // Пользователь не вошел — отправляем на регистрацию
+                window.location.replace("auth.html");
+            }
+        });
+
+        // Кнопка выхода
+        document.getElementById('logoutBtn').onclick = () => {
+            signOut(auth).then(() => {
+                window.location.replace("auth.html");
+            });
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Planify - Sleep Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1a4a8e;
+            --light-blue: #7dafff;
+            --bg-color: #f0f2f5;
+            --accent-green: #9dff9d;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 70px;
+            visibility: hidden; /* Скрыто до авторизации */
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: white;
+            padding: 0 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 2px solid #e0e0e0;
+            z-index: 1000;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary-blue); font-style: italic; text-decoration: none; }
+        nav { display: flex; gap: 25px; }
+        .nav-link { text-decoration: none; color: #666; font-weight: 500; font-size: 15px; transition: 0.2s; }
+        .nav-link:hover { color: var(--primary-blue); }
+        .nav-link.active { color: var(--primary-blue); border-bottom: 2px solid var(--light-blue); padding-bottom: 5px; }
+
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 35px; height: 35px; background: black; border-radius: 50%; }
+
+        .main-content {
+            font-family: 'Montserrat', sans-serif;
+            width: 95%;
+            max-width: 900px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .month-select {
+            font-family: 'Montserrat', sans-serif;
+            margin: 10px auto 25px;
+            padding: 8px 25px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            background: #e0e0e0;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 30px;
+            text-align: left;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            border: 1px solid #999;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .day-display {
+            background: #eee;
+            padding: 10px 15px;
+            font-weight: 700;
+            border-right: 1px solid #999;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .input-wrapper input {
+            font-family: 'Montserrat', sans-serif;
+            width: 80px;
+            padding: 10px;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .ok-btn {
+            background: var(--accent-green);
+            border: none;
+            border-left: 1px solid #999;
+            padding: 0 25px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        .instruction {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Planify</div>
+        <nav>
+            <a href="index.html" class="nav-link">Main page</a>
+            <a href="HabirTracker.html" class="nav-link">Habit tracker</a>
+            <a href="sleepTracker.html" class="nav-link active">Sleep tracker</a>
+            <a href="planner.html" class="nav-link">Planner</a>
+            <a href="notes.html" class="nav-link">Notes</a>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <span><strong id="displayUserName">Alex</strong></span>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <select class="month-select" id="monthSelector">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8" selected>September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+        </select>
+
+        <div class="chart-card">
+            <div class="input-group">
+                <label style="font-size: 18px; font-weight: 400;">How much did you sleep?</label>
+                <div class="input-wrapper">
+                    <div class="day-display" id="dayDisplay">Day 1</div>
+                    <input type="number" id="sleepInput" step="0.5" placeholder="Hrs">
+                    <button class="ok-btn" id="saveBtn">Ok</button>
+                </div>
+            </div>
+            <p class="instruction">Click on the date numbers below to select a day</p>
+            <canvas id="sleepChart" width="850" height="350"></canvas>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPAWcEHQQDXdhGBRLsRjVwQdpC0V2ggVs",
+            authDomain: "planify-app-29fe7.firebaseapp.com",
+            projectId: "planify-app-29fe7",
+            storageBucket: "planify-app-29fe7.firebasestorage.app",
+            messagingSenderId: "787080580754",
+            appId: "1:787080580754:web:aeae712dd78c9f6463a04b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const canvas = document.getElementById('sleepChart');
+        const ctx = canvas.getContext('2d');
+        const monthSelector = document.getElementById('monthSelector');
+        const dayDisplay = document.getElementById('dayDisplay');
+
+        let currentUser = null;
+        let selectedDay = new Date().getDate();
+        let sleepData = {}; // Структура: { "8": { "1": 7, "2": 8 } }
+
+        const pL = 50, pR = 30, pT = 40, pB = 60;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('displayUserName').innerText = user.email.split('@')[0];
+                const docSnap = await getDoc(doc(db, "sleep_tracker", user.uid));
+                if (docSnap.exists()) sleepData = docSnap.data().months || {};
+                document.body.style.visibility = 'visible';
+                updateUI();
+            } else {
+                window.location.replace("auth.html");
+            }
+        });
+
+        function getDaysInMonth(month) {
+            return new Date(2026, parseInt(month) + 1, 0).getDate();
+        }
+
+        window.changeMonth = () => {
+            selectedDay = 1;
+            updateUI();
+        };
+        monthSelector.addEventListener('change', window.changeMonth);
+
+        function updateUI() {
+            dayDisplay.innerText = "Day " + selectedDay;
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const month = monthSelector.value;
+            const totalDays = getDaysInMonth(month);
+            const currentData = sleepData[month] || {};
+
+            const cW = canvas.width - pL - pR;
+            const cH = canvas.height - pT - pB;
+            const stepX = cW / (totalDays - 1);
+            const stepY = cH / 4;
+
+            // Сетка
+            ctx.strokeStyle = '#eee';
+            ctx.lineWidth = 1;
+            ctx.font = '600 13px Montserrat';
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#444';
+            for (let i = 0; i <= 4; i++) {
+                let y = (canvas.height - pB) - (i * stepY);
+                ctx.beginPath(); ctx.moveTo(pL, y); ctx.lineTo(canvas.width - pR, y); ctx.stroke();
+                ctx.fillText(6 + i, pL - 15, y + 5);
+            }
+
+            // Дни
+            ctx.textAlign = 'center';
+            for (let i = 1; i <= totalDays; i++) {
+                let x = pL + (i - 1) * stepX;
+                ctx.fillStyle = (i === selectedDay) ? '#1a4a8e' : '#999';
+                ctx.font = (i === selectedDay) ? '700 16px Montserrat' : '500 12px Montserrat';
+                ctx.fillText(i, x, canvas.height - 20);
+            }
+
+            // График
+            let points = [];
+            for (let i = 1; i <= totalDays; i++) {
+                if (currentData[i] !== undefined) {
+                    let val = Math.min(Math.max(currentData[i], 6), 10);
+                    points.push({
+                        x: pL + (i - 1) * stepX,
+                        y: (canvas.height - pB) - ((val - 6) * stepY)
+                    });
+                }
+            }
+
+            if (points.length > 1) {
+                ctx.beginPath();
+                ctx.strokeStyle = '#5c7aff'; ctx.lineWidth = 3; ctx.lineJoin = 'round';
+                ctx.moveTo(points[0].x, points[0].y);
+                points.forEach(p => ctx.lineTo(p.x, p.y));
+                ctx.stroke();
+            }
+            points.forEach(p => {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = 'white'; ctx.fill();
+                ctx.strokeStyle = '#5c7aff'; ctx.lineWidth = 2; ctx.stroke();
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            if (mouseY > canvas.height - pB - 10) {
+                const totalDays = getDaysInMonth(monthSelector.value);
+                const stepX = (canvas.width - pL - pR) / (totalDays - 1);
+                let clickedDay = Math.round((mouseX - pL) / stepX) + 1;
+                if (clickedDay >= 1 && clickedDay <= totalDays) {
+                    selectedDay = clickedDay;
+                    updateUI();
+                }
+            }
+        });
+
+        document.getElementById('saveBtn').onclick = async () => {
+            const val = parseFloat(document.getElementById('sleepInput').value);
+            if (!isNaN(val) && currentUser) {
+                const month = monthSelector.value;
+                if (!sleepData[month]) sleepData[month] = {};
+                sleepData[month][selectedDay] = val;
+                await setDoc(doc(db, "sleep_tracker", currentUser.uid), { months: sleepData });
+                draw();
+                document.getElementById('sleepInput').value = '';
+            }
+        };
+    </script>
+</body>
+</html>

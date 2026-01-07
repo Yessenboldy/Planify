@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Planify - Habit Tracker</title>
+    <style>
+        :root {
+            --primary-blue: #1a4a8e;
+            --light-blue: #7dafff;
+            --bg-color: #f0f2f5;
+            --danger-red: #ff4d4d;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            visibility: hidden; /* Скрыто до входа */
+        }
+
+        /* --- ШАПКА --- */
+        header {
+            width: 100%;
+            background: white;
+            padding: 12px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary-blue); font-style: italic; text-decoration: none; }
+        nav { display: flex; gap: 25px; }
+        .nav-link { text-decoration: none; color: #666; font-weight: 500; font-size: 15px; transition: 0.2s; padding: 5px 0; }
+        .nav-link:hover { color: var(--primary-blue); }
+        .nav-link.active { color: var(--primary-blue); border-bottom: 2px solid var(--light-blue); }
+        .user-profile { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 35px; height: 35px; background: black; border-radius: 50%; }
+
+        /* --- КОНТЕНТ --- */
+        .main-content {
+            width: 95%;
+            max-width: 1100px;
+            text-align: center;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 70px);
+        }
+
+        .month-select {
+            margin: 10px auto 20px;
+            padding: 8px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            font-style: italic;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+        }
+
+        .habit-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            flex-grow: 1;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .habit-table-wrapper {
+            overflow: auto;
+            width: 100%;
+            height: 100%;
+        }
+
+        table { border-collapse: collapse; width: 100%; min-width: 1200px; }
+        th, td { border: 1px solid #eee; padding: 10px; text-align: center; min-width: 40px; }
+
+        .habit-header-cell {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 3;
+            min-width: 220px;
+            text-align: left;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .plus-icon { cursor: pointer; font-size: 22px; color: #333; user-select: none; }
+        .plus-icon:hover { color: var(--light-blue); }
+
+        .habit-input-hidden {
+            border: 1px solid var(--light-blue);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 140px;
+            outline: none;
+            display: none;
+        }
+
+        .habit-name-col {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 2;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-habit { color: var(--danger-red); cursor: pointer; font-weight: bold; opacity: 0; transition: 0.2s; }
+        .habit-name-col:hover .delete-habit { opacity: 1; }
+        input[type="checkbox"] { transform: scale(1.2); cursor: pointer; }
+
+        .habit-table-wrapper::-webkit-scrollbar { height: 10px; width: 6px; }
+        .habit-table-wrapper::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Planify</div>
+        <nav>
+            <a href="index.html" class="nav-link">Main page</a>
+            <a href="HabirTracker.html" class="nav-link active">Habit tracker</a>
+            <a href="sleepTracker.html" class="nav-link">Sleep tracker</a>
+            <a href="planner.html" class="nav-link">Planner</a>
+            <a href="notes.html" class="nav-link">Notes</a>
+        </nav>
+        <div class="user-profile">
+            <div class="avatar"></div>
+            <span><strong id="displayUserName">Alex</strong></span>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <select class="month-select" id="monthSelector" onchange="window.renderHabits()">
+            <option value="0">January</option>
+            <option value="1">February</option>
+            <option value="2">March</option>
+            <option value="3">April</option>
+            <option value="4">May</option>
+            <option value="5">June</option>
+            <option value="6">July</option>
+            <option value="7">August</option>
+            <option value="8" selected>September</option>
+            <option value="9">October</option>
+            <option value="10">November</option>
+            <option value="11">December</option>
+        </select>
+
+        <div class="habit-card">
+            <div class="habit-table-wrapper">
+                <table>
+                    <thead>
+                        <tr id="tableHeader">
+                            <th class="habit-header-cell">
+                                <span class="plus-icon" onclick="window.showInput()">+</span>
+                                <span id="headerTitle">HABIT</span>
+                                <input type="text" id="habitInlineInput" class="habit-input-hidden" placeholder="Name..." onblur="window.hideInput()" onkeypress="window.handleKeyPress(event)">
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="habitBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCPAWcEHQQDXdhGBRLsRjVwQdpC0V2ggVs",
+            authDomain: "planify-app-29fe7.firebaseapp.com",
+            projectId: "planify-app-29fe7",
+            storageBucket: "planify-app-29fe7.firebasestorage.app",
+            messagingSenderId: "787080580754",
+            appId: "1:787080580754:web:aeae712dd78c9f6463a04b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let habits = [];
+
+        // ПРОВЕРКА ВХОДА
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('displayUserName').innerText = user.email.split('@')[0];
+                await loadHabits();
+                document.body.style.visibility = 'visible';
+                window.renderHabits();
+            } else {
+                window.location.replace("auth.html");
+            }
+        });
+
+        async function loadHabits() {
+            const docRef = doc(db, "habits", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                habits = docSnap.data().list || [];
+            } else {
+                // Дефолтные привычки для нового пользователя
+                habits = [
+                    { id: 1, name: 'Workout', checks: {} },
+                    { id: 2, name: 'Water', checks: {} }
+                ];
+            }
+        }
+
+        async function save() {
+            if (currentUser) {
+                await setDoc(doc(db, "habits", currentUser.uid), { list: habits });
+            }
+        }
+
+        // ГЛОБАЛЬНЫЕ ФУНКЦИИ
+        window.showInput = () => {
+            document.getElementById('headerTitle').style.display = 'none';
+            const input = document.getElementById('habitInlineInput');
+            input.style.display = 'inline-block';
+            input.focus();
+        };
+
+        window.hideInput = () => {
+            setTimeout(() => {
+                const title = document.getElementById('headerTitle');
+                const input = document.getElementById('habitInlineInput');
+                if (title && input) {
+                    title.style.display = 'inline-block';
+                    input.style.display = 'none';
+                    input.value = '';
+                }
+            }, 200);
+        };
+
+        window.handleKeyPress = async (e) => {
+            if (e.key === 'Enter') {
+                const name = e.target.value.trim();
+                if (name) {
+                    habits.push({ id: Date.now(), name: name, checks: {} });
+                    await save();
+                    window.renderHabits();
+                }
+                window.hideInput();
+            }
+        };
+
+        window.renderHabits = () => {
+            const month = document.getElementById('monthSelector').value;
+            const year = new Date().getFullYear();
+            const daysInMonth = new Date(year, parseInt(month) + 1, 0).getDate();
+            
+            const header = document.getElementById('tableHeader');
+            const body = document.getElementById('habitBody');
+
+            // Оставляем только первую ячейку
+            const firstCellHtml = `<th class="habit-header-cell">
+                                <span class="plus-icon" onclick="window.showInput()">+</span>
+                                <span id="headerTitle">HABIT</span>
+                                <input type="text" id="habitInlineInput" class="habit-input-hidden" placeholder="Name..." onblur="window.hideInput()" onkeypress="window.handleKeyPress(event)">
+                            </th>`;
+            header.innerHTML = firstCellHtml;
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const th = document.createElement('th');
+                th.innerText = i;
+                header.appendChild(th);
+            }
+
+            body.innerHTML = '';
+            habits.forEach((habit, hIdx) => {
+                let row = document.createElement('tr');
+                let nameCell = `<td class="habit-name-col">
+                    <span>${habit.name}</span>
+                    <span class="delete-habit" onclick="window.deleteHabit(${hIdx})">×</span>
+                </td>`;
+                
+                let checksHtml = '';
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const key = `m${month}d${d}`;
+                    const isChecked = habit.checks[key] ? 'checked' : '';
+                    checksHtml += `<td><input type="checkbox" ${isChecked} onchange="window.toggleHabit(${hIdx}, ${d}, ${month})"></td>`;
+                }
+                row.innerHTML = nameCell + checksHtml;
+                body.appendChild(row);
+            });
+        };
+
+        window.toggleHabit = async (hIdx, day, month) => {
+            const key = `m${month}d${day}`;
+            habits[hIdx].checks[key] = !habits[hIdx].checks[key];
+            await save();
+        };
+
+        window.deleteHabit = async (index) => {
+            habits.splice(index, 1);
+            await save();
+            window.renderHabits();
+        };
+    </script>
+</body>
+</html>
